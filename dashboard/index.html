@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Radar 01 — pre-token protocols ranked by implied value</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div>
+      <h1>Token Radar <span class="edition">01</span></h1>
+      <p class="tagline">Which protocol with no token yet is worth farming next — and what to do about it.</p>
+    </div>
+    <div class="badges">
+      <span class="badge" id="badge-date">Snapshot —</span>
+      <span class="badge">DefiLlama data · offline</span>
+      <span class="badge">No network at runtime</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="kpis" id="kpis" aria-label="Summary">
+    <div class="kpi"><span class="kpi-label">Pre-token protocols</span><span class="kpi-value" id="kpi-count">—</span><span class="kpi-sub" id="kpi-count-sub"></span></div>
+    <div class="kpi"><span class="kpi-label">Total implied pool</span><span class="kpi-value" id="kpi-pool">—</span><span class="kpi-sub">sum of implied airdrop value, visible rows</span></div>
+    <div class="kpi"><span class="kpi-label">Watchlist shown</span><span class="kpi-value" id="kpi-wl">—</span><span class="kpi-sub" id="kpi-wl-sub"></span></div>
+    <div class="kpi"><span class="kpi-label">Median 7d TVL change</span><span class="kpi-value" id="kpi-ch7">—</span><span class="kpi-sub">visible rows, vs snapshot median</span></div>
+  </section>
+
+  <section class="filters" aria-label="Filters">
+    <input id="f-search" type="search" placeholder="Search name, slug, category or chain…" aria-label="Search">
+    <select id="f-chain" aria-label="Chain"><option value="">All chains</option></select>
+    <select id="f-category" aria-label="Category"><option value="">All categories</option></select>
+    <select id="f-min-tvl" aria-label="Minimum TVL">
+      <option value="">Min TVL: any</option>
+      <option value="5000000">$5M</option>
+      <option value="25000000">$25M</option>
+      <option value="50000000">$50M</option>
+      <option value="100000000">$100M</option>
+      <option value="250000000">$250M</option>
+      <option value="1000000000">$1B</option>
+    </select>
+    <select id="f-max-tvl" aria-label="Maximum TVL">
+      <option value="">Max TVL: any</option>
+      <option value="25000000">$25M</option>
+      <option value="50000000">$50M</option>
+      <option value="100000000">$100M</option>
+      <option value="250000000">$250M</option>
+      <option value="1000000000">$1B</option>
+    </select>
+    <label class="check"><input id="f-watchlist" type="checkbox"> Watchlist only</label>
+    <label class="check"><input id="f-hide-sib" type="checkbox"> Hide sibling-token flags</label>
+    <button id="f-reset" type="button">Reset</button>
+  </section>
+  <div class="chips" id="chips" aria-label="Active filters"></div>
+
+  <section class="table-wrap">
+    <table id="board">
+      <caption><span id="row-count"></span></caption>
+      <thead>
+        <tr>
+          <th data-sort="rank" aria-sort="descending">Rank</th>
+          <th data-sort="name">Protocol</th>
+          <th data-sort="primary_chain">Chains</th>
+          <th data-sort="category">Category</th>
+          <th data-sort="tvl_usd">TVL</th>
+          <th data-sort="change_7d">7d %</th>
+          <th data-sort="age_days">Age</th>
+          <th data-sort="implied_value_usd" aria-sort="descending">Implied value</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </section>
+
+  <section class="method" aria-label="How the value is worked out">
+    <h2>How the implied value is worked out</h2>
+    <p>Every protocol on this board records no token in the snapshot: no symbol, no CoinGecko id, no market cap. The implied value is the board's own claim, never the snapshot's: <code>implied value = 8% × TVL<sub>eff</sub> × M<sub>cat</sub> × W<sub>cat</sub> × W<sub>growth</sub> × W<sub>age</sub> × W<sub>chain</sub> × W<sub>wl</sub> × W<sub>sib</sub></code>.</p>
+    <ul>
+      <li><strong>TVL<sub>eff</sub></strong> — TVL compressed sub-linearly, <code>50M × (TVL / 50M)^0.65</code>, so a $7B bridge does not drown out a $30M early protocol.</li>
+      <li><strong>M<sub>cat</sub></strong> — the median market-cap/TVL of the snapshot's own tokenized protocols in the same category, shrunk toward the global median (0.2138 here).</li>
+      <li><strong>W<sub>cat</sub></strong> — how often the category launches a token: native DeFi (lending, DEXs, perps) scores high, bridges and wrapped products score low.</li>
+      <li><strong>W<sub>growth</sub></strong> — 7-day TVL change measured against the pre-token median (−5.48% this snapshot), winsorized so one wild week cannot decide the board.</li>
+      <li><strong>W<sub>age</sub></strong> — the farming window peaks 1–12 months after listing and fades past 900 days with no token.</li>
+      <li><strong>W<sub>chain</sub></strong> — how fresh and deep the protocol's best chain's pre-token ecosystem is, with a small multi-chain bonus.</li>
+      <li><strong>W<sub>wl</sub> / W<sub>sib</sub></strong> — 1.35× when the snapshot's own watchlist names the protocol; 0.35× when it looks like a sibling product of a protocol whose token already trades.</li>
+    </ul>
+    <p class="caveat">A protocol on the watchlist records no token — it does not prove it has none. Farm plans are generic steps derived from the protocol's category, chains, TVL and age; they are not investment advice, and no token launch is guaranteed.</p>
+  </section>
+</main>
+
+<aside class="drawer" id="drawer" aria-label="Protocol detail" hidden>
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+  <div class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="d-name">
+    <button class="drawer-close" id="drawer-close" type="button" aria-label="Close detail">×</button>
+    <div id="drawer-body"></div>
+  </div>
+</aside>
+
+<footer>
+  <p>Token Radar 01 · Data: DefiLlama protocol snapshot, <span id="foot-date">2026-11-14</span> · Built by a program that reads the snapshot and nothing else — no network, no hand-kept list of names.</p>
+</footer>
+
+<script src="../data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
